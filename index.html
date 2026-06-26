@@ -307,8 +307,16 @@
   }
   function cardClass(p) {
     if (p >= 100) return "lunas";
-    if (p < 25)   return "warn";
-    return "";
+    return "warn";
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function renderSummary(data) {
@@ -339,8 +347,8 @@
         <div class="card ${cardClass(c.pct)}">
           <div class="card-top">
             <div>
-              <div class="card-name">${c.name}</div>
-              <div class="card-meta">${c.tix} tiket</div>
+              <div class="card-name">${escapeHtml(c.name)}</div>
+              <div class="card-meta">${escapeHtml(c.tix)} tiket</div>
             </div>
             <span class="badge ${badgeClass(c.pct)}">${badgeLabel(c.pct)}</span>
           </div>
