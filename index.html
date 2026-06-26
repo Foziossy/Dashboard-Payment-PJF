@@ -182,7 +182,7 @@
       white-space: nowrap;
     }
     .badge-lunas { background: var(--green-dim); color: var(--green); }
-    .badge-dp    { background: var(--amber-dim); color: var(--amber); }
+    .badge-dp    { background: var(--red-dim); color: var(--red); }
     .badge-warn  { background: var(--red-dim);   color: var(--red); }
 
     /* ── PROGRESS ── */
@@ -389,7 +389,7 @@
 
       const d = new Date(json.updated);
       const jam = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-      setStatus("live", `Live · diperbarui <strong>${jam}</strong>`);
+      setStatus("live", `Live`);
       lastUpdated = json.updated;
 
     } catch (err) {
