@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Status Tiket · Prambanan Jazz 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --gold:      #C9A84C;
+      --gold-dim:  #7A5E24;
+      --green:     #4CAF72;
+      --green-dim: rgba(76,175,114,0.15);
+      --amber:     #E09A35;
+      --amber-dim: rgba(224,154,53,0.15);
+      --red:       #E05555;
+      --red-dim:   rgba(224,85,85,0.13);
+      --font-sans: 'Space Grotesk', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg:       #0D0F0E;
+      --surface:  #161918;
+      --surface2: #1E2220;
+      --border:   #2A2F2C;
+      --text:     #EEF0EE;
+      --text-2:   #8A9490;
+      --text-3:   #4A5450;
+    }
+
+    [data-theme="light"] {
+      --bg:       #F5F5F2;
+      --surface:  #FFFFFF;
+      --surface2: #EEEEED;
+      --border:   #DEDEDD;
+      --text:     #111312;
+      --text-2:   #5A6460;
+      --text-3:   #9AA09C;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 22px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header h1 {
+      font-size: clamp(22px, 5vw, 30px);
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    header h1 span { color: var(--gold); }
+    .header-sub {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    /* ── THEME TOGGLE ── */
+    .theme-btn {
+      flex-shrink: 0;
+      margin-top: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    /* ── COUNTDOWN ── */
+    .countdown-wrap {
+      max-width: 640px;
+      margin: 18px auto 0;
+      padding: 0 24px;
+    }
+    .countdown-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .countdown-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 4px;
+    }
+    .countdown-timer {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+    }
+    .countdown-timer.urgent { color: var(--red); }
+    .countdown-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: right;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      max-width: 640px;
+      margin: 14px auto 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-3);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.live  { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+    .status-dot.error { background: var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .status-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      flex: 1;
+    }
+
+    /* ── PULL TO REFRESH ── */
+    .ptr-hint {
+      max-width: 640px;
+      margin: 8px auto 0;
+      padding: 0 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: center;
+      display: none;
+    }
+    @media (max-width: 768px) { .ptr-hint { display: block; } }
+    .ptr-indicator {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+      z-index: 100;
+    }
+    .ptr-indicator.pulling { transform: scaleX(var(--pull-progress, 0)); }
+    .ptr-indicator.refreshing { transform: scaleX(1); animation: ptr-anim 0.8s ease infinite; }
+    @keyframes ptr-anim { 0%{opacity:1} 50%{opacity:0.4} 100%{opacity:1} }
+
+    /* ── SUMMARY ── */
+    .summary {
+      max-width: 640px;
+      margin: 18px auto 0;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 14px 12px;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.amber { color: var(--amber); }
+
+    /* ── CARDS ── */
+    .cards {
+      max-width: 640px;
+      margin: 18px auto 0;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--gold-dim);
+    }
+    .card.lunas::before { background: var(--green); }
+    .card.warn::before  { background: var(--red); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card-name { font-size: 17px; font-weight: 600; line-height: 1.2; }
+    .card-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+    .badge {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .badge-lunas { background: var(--green-dim); color: var(--green); }
+    .badge-dp    { background: var(--red-dim);   color: var(--red); }
+    .badge-warn  { background: var(--red-dim);   color: var(--red); }
+
+    /* ── PROGRESS ── */
+    .progress-wrap { margin-bottom: 4px; }
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .pct-paid { font-family: var(--font-mono); font-size: 13px; color: var(--text-2); }
+    .pct-paid strong { font-size: 24px; font-weight: 700; color: var(--text); margin-right: 1px; }
+    .pct-sisa { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+    .pct-sisa span { color: var(--text); font-weight: 500; }
+    .progress-track {
+      background: var(--surface2);
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    /* ── LOADING / ERROR ── */
+    .state-box { max-width: 640px; margin: 40px auto; padding: 0 24px; text-align: center; }
+    .state-box p { font-family: var(--font-mono); font-size: 13px; color: var(--text-3); margin-top: 10px; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ── */
+    footer {
+      max-width: 640px;
+      margin: 36px auto 0;
+      padding: 0 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: center;
+      line-height: 1.9;
+    }
+
+    @media (max-width: 420px) {
+      header, .countdown-wrap, .summary, .cards, .status-bar, footer,
+      .ptr-hint { padding-left: 14px; padding-right: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ptr-indicator" id="ptr-bar"></div>
+
+<header>
+  <div class="header-row">
+    <div>
+      <p class="eyebrow">Prambanan Jazz Festival 2026</p>
+      <h1>Status <span>Pembayaran</span> Tiket</h1>
+      <p class="header-sub">Data diperbarui berkala.</p>
+    </div>
+    <button class="theme-btn" id="theme-btn" aria-label="Toggle tema">☀︎ Light</button>
+  </div>
+</header>
+
+<!-- COUNTDOWN -->
+<div class="countdown-wrap">
+  <div class="countdown-box">
+    <div>
+      <div class="countdown-label">Countdown to the Stage</div>
+      <div class="countdown-timer" id="countdown">–</div>
+    </div>
+    <div class="countdown-date" id="countdown-date"></div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot" id="dot"></div>
+  <p class="status-text" id="status-text">Menghubungkan…</p>
+</div>
+
+<p class="ptr-hint" id="ptr-hint">↓ Tarik ke bawah untuk refresh</p>
+
+<div class="summary" id="summary"></div>
+<div id="main"></div>
+
+<footer>
+  <p>Hubungi via WhatsApp bila ada pertanyaan soal pembayaran tiket.</p>
+  <p>Fauzi Rosyad</p>
+</footer>
+
+<script>
+  // Token & URL Apps Script sekarang tersimpan aman di server Vercel (tidak kelihatan di sini)
+  const API_URL    = "/api/data";
+  const REFRESH_MS = 30000;
+  const EVENT_DATE = new Date("2026-07-04T00:00:00+07:00"); // 4 Juli 2026 WIB
+
+  let lastUpdated = null;
+
+  /* ── THEME ── */
+  const html      = document.documentElement;
+  const themeBtn  = document.getElementById("theme-btn");
+  const saved     = localStorage.getItem("theme") || "dark";
+  html.setAttribute("data-theme", saved);
+  themeBtn.textContent = saved === "dark" ? "☀︎ Light" : "☾ Dark";
+
+  themeBtn.addEventListener("click", () => {
+    const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    themeBtn.textContent = next === "dark" ? "☀︎ Light" : "☾ Dark";
+  });
+
+  /* ── COUNTDOWN ── */
+  function updateCountdown() {
+    const now  = new Date();
+    const diff = EVENT_DATE - now;
+    const el   = document.getElementById("countdown");
+    const dateEl = document.getElementById("countdown-date");
+
+    dateEl.textContent = "4 Juli 2026";
+
+    if (diff <= 0) {
+      el.textContent = "Event berlangsung! 🎉";
+      el.classList.remove("urgent");
+      return;
+    }
+
+    const d  = Math.floor(diff / 86400000);
+    const h  = Math.floor((diff % 86400000) / 3600000);
+    const m  = Math.floor((diff % 3600000)  / 60000);
+    const s  = Math.floor((diff % 60000)    / 1000);
+
+    const pad = n => String(n).padStart(2, "0");
+    el.textContent = `${d}D ${pad(h)}H ${pad(m)}M ${pad(s)}S`;
+    if (d < 3) el.classList.add("urgent");
+    else el.classList.remove("urgent");
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  /* ── PULL TO REFRESH (mobile) ── */
+  let touchStartY = 0;
+  let pulling     = false;
+  let refreshing  = false;
+  const PTR_THRESHOLD = 80;
+  const ptrBar    = document.getElementById("ptr-bar");
+  const ptrHint   = document.getElementById("ptr-hint");
+
+  document.addEventListener("touchstart", e => {
+    if (window.scrollY === 0) {
+      touchStartY = e.touches[0].clientY;
+      pulling = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchmove", e => {
+    if (!pulling || refreshing) return;
+    const dist = e.touches[0].clientY - touchStartY;
+    if (dist > 0) {
+      const progress = Math.min(dist / PTR_THRESHOLD, 1);
+      ptrBar.style.setProperty("--pull-progress", progress);
+      ptrBar.className = "ptr-indicator pulling";
+      ptrHint.textContent = dist >= PTR_THRESHOLD ? "↑ Lepas untuk refresh" : "↓ Tarik ke bawah untuk refresh";
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchend", e => {
+    if (!pulling) return;
+    pulling = false;
+    const dist = e.changedTouches[0].clientY - touchStartY;
+    ptrHint.textContent = "↓ Tarik ke bawah untuk refresh";
+    if (dist >= PTR_THRESHOLD && !refreshing) {
+      refreshing = true;
+      ptrBar.className = "ptr-indicator refreshing";
+      fetchData().finally(() => {
+        setTimeout(() => {
+          refreshing = false;
+          ptrBar.className = "ptr-indicator";
+        }, 600);
+      });
+    } else {
+      ptrBar.className = "ptr-indicator";
+    }
+  });
+
+  /* ── HELPERS ── */
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+  function pctColor(p) {
+    if (p >= 100) return "var(--green)";
+    if (p >= 50)  return "var(--amber)";
+    return "var(--red)";
+  }
+  function badgeClass(p) {
+    if (p >= 100) return "badge-lunas";
+    if (p >= 50)  return "badge-dp";
+    return "badge-warn";
+  }
+  function badgeLabel(p) {
+    if (p >= 100) return "✓ Lunas";
+    return "Belum Lunas";
+  }
+  function cardClass(p) {
+    if (p >= 100) return "lunas";
+    return "warn";
+  }
+
+  /* ── RENDER ── */
+  function renderSummary(data) {
+    const lunas    = data.filter(c => c.pct >= 100).length;
+    const belum    = data.filter(c => c.pct < 100).length;
+    const totalTix = data.reduce((a, c) => a + c.tix, 0);
+    document.getElementById("summary").innerHTML = `
+      <div class="stat">
+        <div class="stat-label">Total Tiket</div>
+        <div class="stat-value">${totalTix}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Sudah Lunas</div>
+        <div class="stat-value green">${lunas}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Belum Lunas</div>
+        <div class="stat-value amber">${belum}</div>
+      </div>
+    `;
+  }
+
+  function renderCards(data) {
+    const html = data.map(c => {
+      const sisa  = 100 - c.pct;
+      const color = pctColor(c.pct);
+      return `
+        <div class="card ${cardClass(c.pct)}">
+          <div class="card-top">
+            <div>
+              <div class="card-name">${escapeHtml(c.name)}</div>
+              <div class="card-meta">${escapeHtml(c.tix)} tiket</div>
+            </div>
+            <span class="badge ${badgeClass(c.pct)}">${badgeLabel(c.pct)}</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-labels">
+              <span class="pct-paid"><strong>${c.pct}</strong>% terbayar</span>
+              <span class="pct-sisa">${sisa > 0 ? `sisa <span>${sisa}%</span>` : "lunas 🎉"}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" data-target="${c.pct}" style="background:${color};"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    document.getElementById("main").innerHTML = `<div class="cards">${html}</div>`;
+
+    // Animate progress bars from 0 → target
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.querySelectorAll(".progress-fill").forEach(el => {
+          el.style.width = el.dataset.target + "%";
+        });
+      });
+    });
+  }
+
+  function setStatus(state, msg) {
+    const dot  = document.getElementById("dot");
+    const text = document.getElementById("status-text");
+    dot.className  = "status-dot " + (state === "live" ? "live" : state === "error" ? "error" : "");
+    text.textContent = msg;
+  }
+
+  function showLoading() {
+    document.getElementById("main").innerHTML = `
+      <div class="state-box">
+        <div class="spinner"></div>
+        <p>Mengambil data…</p>
+      </div>
+    `;
+  }
+
+  /* ── FETCH ── */
+  async function fetchData() {
+    try {
+      const res  = await fetch(API_URL + "?t=" + Date.now());
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const json = await res.json();
+      if (!json.ok || !json.data) throw new Error("Format data tidak valid");
+
+      renderSummary(json.data);
+      renderCards(json.data);
+      setStatus("live", "Live");
+      lastUpdated = json.updated;
+
+    } catch (err) {
+      setStatus("error", "Gagal memuat data — coba refresh");
+      if (!lastUpdated) {
+        document.getElementById("main").innerHTML = `
+          <div class="state-box">
+            <p>Tidak dapat terhubung ke spreadsheet.<br>Pastikan URL Apps Script sudah diatur.</p>
+          </div>
+        `;
+      }
+      console.error(err);
+    }
+  }
+
+  /* ── INIT ── */
+  showLoading();
+  fetchData();
+  setInterval(fetchData, REFRESH_MS);
+</script>
+</body>
+</html>
