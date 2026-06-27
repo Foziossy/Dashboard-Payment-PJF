@@ -1,26 +1,56 @@
 // ─────────────────────────────────────────────
-//  Prambanan Jazz – Payment API
+//  Prambanan Jazz – Payment API  (SECURED)
 //  Pasang di: Extensions → Apps Script
 //  Lalu: Deploy → New deployment → Web App
 //  Execute as: Me | Who has access: Anyone
 // ─────────────────────────────────────────────
 
-function doGet(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet()
-                              .getSheetByName("Customer");
-  const rows  = sheet.getDataRange().getValues();
+// ⚠️  GANTI dengan token rahasia milikmu sendiri!
+//     Gunakan token yang sama di index.html (API_TOKEN)
+const SECRET_TOKEN = "prambananjazz-niki-2026";
 
-  // Baris pertama = header: Nama Customer | Jumlah Tiket | Total Payment (% string)
-  const headers = rows[0];
-  const data    = [];
+// Rate limiting: max request per IP per menit
+const RATE_LIMIT    = 20;   // max 20 request
+const RATE_WINDOW   = 60;   // dalam 60 detik
+
+function doGet(e) {
+
+  // ── 1. TOKEN AUTH ───────────────────────────
+  const token = e.parameter.token || "";
+  if (token !== SECRET_TOKEN) {
+    return jsonResponse({ ok: false, error: "Unauthorized" }, 401);
+  }
+
+  // ── 2. RATE LIMITING (per IP) ───────────────
+  const ip    = e.parameter.userIp || "unknown";
+  const cache = CacheService.getScriptCache();
+  const key   = "rl_" + ip;
+  const hits  = Number(cache.get(key) || 0);
+
+  if (hits >= RATE_LIMIT) {
+    return jsonResponse({ ok: false, error: "Too Many Requests" }, 429);
+  }
+  cache.put(key, String(hits + 1), RATE_WINDOW);
+
+  // ── 3. BACA DATA SHEET ──────────────────────
+  let sheet;
+  try {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Customer");
+    if (!sheet) throw new Error("Sheet 'Customer' tidak ditemukan");
+  } catch (err) {
+    return jsonResponse({ ok: false, error: "Sheet error: " + err.message });
+  }
+
+  const rows = sheet.getDataRange().getValues();
+  const data = [];
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row[0]) continue; // skip baris kosong
 
-    const name    = String(row[0]).trim();
-    const tix     = Number(row[1]) || 0;
-    const pctRaw  = row[2]; // bisa "25.0%" atau 0.25
+    const name   = String(row[0]).trim();
+    const tix    = Number(row[1]) || 0;
+    const pctRaw = row[2]; // bisa "25.0%" atau 0.25
 
     // Normalise persen → angka 0–100
     let pct;
@@ -30,23 +60,18 @@ function doGet(e) {
       pct = Math.round(parseFloat(String(pctRaw).replace("%", "")) || 0);
     }
 
+    // Clamp 0–100
+    pct = Math.max(0, Math.min(100, pct));
+
     data.push({ name, tix, pct });
   }
 
-  const payload = JSON.stringify({ ok: true, updated: new Date().toISOString(), data });
-
-  return ContentService
-    .createTextOutput(payload)
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders
-    ? addCors(payload)
-    : ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse({ ok: true, updated: new Date().toISOString(), data });
 }
 
-// Tambah CORS header agar bisa di-fetch dari Vercel
-function addCors(payload) {
+// ── HELPER ──────────────────────────────────
+function jsonResponse(payload) {
   return ContentService
-    .createTextOutput(payload)
+    .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
-  // Apps Script otomatis allow CORS untuk GET — tidak perlu manual
 }
