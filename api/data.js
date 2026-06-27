@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const data = await upstream.json();
 
     // Cache response 15 detik di browser, 30 detik di CDN Vercel
-    res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=15");
+    res.setHeader("Cache-Control", "no-store");
     return res.status(200).json(data);
 
   } catch (err) {
